@@ -1,0 +1,8 @@
+env:
+  CC: gcc
+  CXX: g++
+cmake:
+  build_dir: build-edk-gcc
+  generator: Unix Makefiles
+  args:
+    CMAKE_BUILD_TYPE: Debug

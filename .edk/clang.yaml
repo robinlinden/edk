@@ -1,0 +1,8 @@
+env:
+  CC: clang
+  CXX: clang++
+cmake:
+  build_dir: build-edk-clang
+  generator: Ninja
+  args:
+    CMAKE_BUILD_TYPE: Debug
