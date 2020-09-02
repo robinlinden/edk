@@ -7,16 +7,41 @@ import subprocess
 import yaml
 
 
+def _path_from_env(variable, default):
+    value = os.environ.get(variable)
+    if value:
+        return pathlib.Path(value)
+    return default
+
+
+HOME = pathlib.Path(os.path.expandvars("$HOME"))
+XDG_CONFIG_HOME = _path_from_env("XDG_CONFIG_HOME", HOME / ".config")
+
+
+class Sdks:
+    def __init__(self, local=None, user=None):
+        self.local = local or list()
+        self.user = user or list()
+
+    def __str__(self):
+        s = "Local:\n" + "\n".join(map(lambda p: "  " + p.name[:-5], self.local)) + "\n"
+        s += "User:\n" + "\n".join(map(lambda p: "  " + p.name[:-5], self.user))
+        return s
+
+    def all(self):
+        return self.local + self.user
+
+
 def _get_sdk_files():
     local_sdk_dir = pathlib.Path.cwd() / ".edk"
-    local_sdks = list(local_sdk_dir.glob("*.yaml"))
-    return local_sdks
+    user_sdk_dir = XDG_CONFIG_HOME / "edk"
+    return Sdks(list(local_sdk_dir.glob("*.yaml")), list(user_sdk_dir.glob("*.yaml")))
 
 
 def _get_sdk_file(sdk_name):
     sdks = _get_sdk_files()
-    for sdk in sdks:
-        if sdk.name.strip(".yaml") == sdk_name:
+    for sdk in sdks.all():
+        if sdk.name[:-5] == sdk_name:
             return sdk
     return None
 
@@ -24,8 +49,7 @@ def _get_sdk_file(sdk_name):
 def do_list(_):
     sdks = _get_sdk_files()
     print("Available SDKs:")
-    for sdk in sdks:
-        print(sdk.name.strip(".yaml"))
+    print(sdks)
 
 
 def _require_sdk(name):
